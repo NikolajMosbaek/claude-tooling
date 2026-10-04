@@ -1,18 +1,52 @@
 # claude-tooling
 
-A Claude Code plugin marketplace: a morning-brief skill for Azure DevOps work, and two mods that make Claude safer and quicker with git and Xcode.
+A [Claude Code](https://code.claude.com) plugin marketplace with three tools:
+
+| Tool | What it is | What it gives you | Needs |
+|---|---|---|---|
+| [work-status](#work-status) | Skill | `/work-status`: a morning brief of your sprint items, PR health, what landed, and where every open session stopped | Azure DevOps, `az login`, `python3` |
+| [git-confirm](#git-confirm) | Mod | Refuses force-pushes; asks before a git command that would destroy work that isn't Claude's own, with an alarm listing what would be lost | Claude Code 2.1.287+, macOS |
+| [dev-commands](#dev-commands) | Mod | `/build-status` and `/wt`: instant answers about your xcodebuild and worktrees, with no Claude turn | Claude Code 2.1.287+, macOS |
+
+A *mod* is a plugin that runs inside Claude Code itself, so it sees every command Claude runs and
+can draw in the interface — see [Mods](https://code.claude.com/docs/en/plugins/mods/overview).
 
 ## Install
 
-```
-/plugin marketplace add NikolajMosbaek/claude-tooling
-/plugin install work-status@claude-tooling
-/plugin install git-confirm@claude-tooling
-/plugin install dev-commands@claude-tooling
-```
+1. Check your version: `claude --version` must be 2.1.287 or later for the two mods. Update
+   Claude Code if it is older.
+2. In a Claude Code session, add the marketplace once:
 
-Updating later is `/plugin update`, which is the point of shipping this as a
-marketplace rather than a copied folder.
+   ```
+   /plugin marketplace add NikolajMosbaek/claude-tooling
+   ```
+
+3. Install the tools you want — any one of them works on its own:
+
+   ```
+   /plugin install work-status@claude-tooling
+   /plugin install git-confirm@claude-tooling
+   /plugin install dev-commands@claude-tooling
+   ```
+
+   work-status asks for your Azure DevOps organization when it is enabled: the name in your
+   `dev.azure.com/<organization>/…` URLs.
+
+4. Load them in the open session with `/reload-plugins`, or start a new session.
+5. Check: `/plugin` shows a dim line such as `2 mods active · git-confirm, dev-commands` under its
+   tabs, and typing `/wt` should print your worktrees.
+
+The same steps work from a shell: `claude plugin marketplace add NikolajMosbaek/claude-tooling`,
+then `claude plugin install <tool>@claude-tooling`.
+
+### Update, turn off, remove
+
+| To | Run |
+|---|---|
+| Get new versions | `/plugin update`, or `claude plugin update <tool>@claude-tooling` |
+| Turn a tool off for a while | `/plugin` → **Installed** tab → select it → **Disable plugin** |
+| Remove a tool | `/plugin uninstall <tool>@claude-tooling` |
+| Turn every mod off for one session | start Claude Code with `--safe-mode` |
 
 ## Plugins
 
@@ -20,7 +54,10 @@ marketplace rather than a copied folder.
 
 `/work-status` builds a morning brief: sprint items assigned to you, PR health,
 what landed since you last looked, local branch state, and where every open
-context window stopped. It renders a styled HTML page and opens it.
+context window stopped. It renders a styled HTML page and opens it in your browser.
+
+Use it at the start of the day, or after a break, to see what needs you without
+opening Azure DevOps, every repo and every terminal tab.
 
 Read-only against Azure DevOps and every repo — it reports, it does not act. The
 only things written are the brief under `~/.claude/briefs/` and, on a first run,
@@ -86,6 +123,32 @@ that watches the git commands Claude runs:
 - **Anything it cannot measure counts as at risk**: a path held in a shell variable it can't
   resolve, or git failing.
 
+What you see when it asks, around Claude Code's own question:
+
+```
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃                    ⚠  RISKY GIT  ⚠                     ┃
+┃ 💥 at risk in my-app:                                   ┃
+┃    D  Feature/Old.swift                                 ┃
+┃     M App/AppDelegate.swift                             ┃
+┃    1 file Claude changed this session goes too          ┃
+┃ `git reset --hard` discards every uncommitted change    ┃
+┃ to tracked files. Right now: 2 uncommitted files in     ┃
+┃ my-app that Claude didn't change. Run it?               ┃
+┃  ❯ 1. Cancel                                            ┃
+┃    2. Proceed                                           ┃
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+```
+
+And when nothing is at risk, only a dim line in the transcript:
+
+```
+git-confirm: let `git branch -D feature/done` through — feature/done is already in origin/main
+```
+
+The frame draws in the terminal and the desktop app. In the VS Code chat panel you get the same
+question without the frame. To silence the chirp, delete `sounds/alarm.wav` from the installed plugin.
+
 ### dev-commands
 
 A mod (Claude Code 2.1.287 or later) adding two commands that run instantly, with no Claude turn,
@@ -97,7 +160,32 @@ even while Claude is working:
 - `/wt` — the `git worktree list` table, marking the worktree this session is in, with each one's
   branch, HEAD and uncommitted-file count.
 
-Both are read-only.
+Both are read-only. A normal slash command is a message to Claude: it waits for Claude to finish,
+then spends a turn. These run their own code the moment you press Enter, so they answer even in the
+middle of a long build.
+
+```
+/wt
+This session is in .worktrees/123-login-fix on bugfix/123-login-fix.
+
+   WORKTREE                     BRANCH                    HEAD      CHANGES
+   (main checkout)              main                      0c8f3493  clean
+→  .worktrees/123-login-fix     bugfix/123-login-fix      9846cb47  2 changed
+   .worktrees/release-notes     docs/release-notes        7d141602  clean
+```
+
+```
+/build-status
+xcodebuild test · MyApp Test · started 6m 12s ago · background
+Log: /private/tmp/…/test.log · 12.4 MB · written 3s ago
+Result: none yet; xcodebuild is running (pid 4242)
+Errors (1):
+  /…/LoginView.swift:42:9: error: cannot find 'session' in scope
+```
+
+`/build-status` finds the log by watching where Claude redirects xcodebuild's output
+(`> file`, `&>`, `| tee`). With no build seen in this session it falls back to the newest
+xcodebuild log Claude wrote under `/private/tmp/claude-*`.
 
 ## Developing a mod
 
