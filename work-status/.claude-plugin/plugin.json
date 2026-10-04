@@ -1,0 +1,23 @@
+{
+  "name": "work-status",
+  "version": "1.1.0",
+  "description": "Morning brief for Claude Code work — sprint items assigned to you, PR health, what landed since you last looked, local branch state, and where every open context window stopped. Renders a styled HTML brief and opens it.",
+  "author": {
+    "name": "Nikolaj Søgaard Simonsen"
+  },
+  "keywords": [
+    "azure-devops",
+    "brief",
+    "standup",
+    "pull-requests",
+    "sprint"
+  ],
+  "userConfig": {
+    "ado_organization": {
+      "type": "string",
+      "title": "Azure DevOps organization",
+      "description": "The organization name in your Azure DevOps URLs: dev.azure.com/<organization>/…",
+      "required": true
+    }
+  }
+}

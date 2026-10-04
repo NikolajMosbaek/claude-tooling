@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "ado": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "-y", "@azure-devops/mcp", "${user_config.ado_organization}",
+        "-d", "core", "work", "work-items", "repositories", "pipelines",
+        "-a", "azcli"
+      ]
+    }
+  }
+}

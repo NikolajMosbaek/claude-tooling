@@ -1,0 +1,15 @@
+{
+  "name": "git-confirm",
+  "version": "1.0.0",
+  "description": "Refuses force-pushes, and before a git command that would destroy work that isn't Claude's own, shows an alarm with what would be lost and asks",
+  "author": {
+    "name": "Nikolaj Søgaard Simonsen"
+  },
+  "keywords": [
+    "git",
+    "safety",
+    "mod",
+    "confirm"
+  ],
+  "types": "./types/index.d.ts"
+}

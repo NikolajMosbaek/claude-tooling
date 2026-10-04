@@ -1,0 +1,15 @@
+{
+  "name": "dev-commands",
+  "version": "1.0.0",
+  "description": "Instant commands that run without a Claude turn: /build-status for the latest xcodebuild, /wt for the worktree list",
+  "author": {
+    "name": "Nikolaj Søgaard Simonsen"
+  },
+  "keywords": [
+    "xcodebuild",
+    "worktree",
+    "mod",
+    "commands"
+  ],
+  "types": "./types/index.d.ts"
+}

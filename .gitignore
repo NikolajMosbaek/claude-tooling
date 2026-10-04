@@ -1,0 +1,7 @@
+__pycache__/
+*.pyc
+.DS_Store
+# Written by Claude Code each time it loads a mod from a folder (the API's types and a
+# tsconfig.json extending them) — regenerated per build, never committed.
+*/.claude-plugin/types/
+*/tsconfig.json

@@ -1,0 +1,27 @@
+{
+  "name": "claude-tooling",
+  "description": "Claude Code plugins and mods",
+  "owner": {
+    "name": "Nikolaj Søgaard Simonsen"
+  },
+  "plugins": [
+    {
+      "name": "work-status",
+      "source": "./work-status",
+      "description": "Morning brief for Claude Code work — sprint items assigned to you, PR health, what landed since you last looked, local branch state, and where every open context window stopped.",
+      "version": "1.1.0"
+    },
+    {
+      "name": "git-confirm",
+      "source": "./git-confirm",
+      "version": "1.0.0",
+      "description": "Refuses force-pushes, and before a git command that would destroy work that isn't Claude's own, shows an alarm with what would be lost and asks. A mod: Claude Code 2.1.287+."
+    },
+    {
+      "name": "dev-commands",
+      "source": "./dev-commands",
+      "version": "1.0.0",
+      "description": "Instant commands that run without a Claude turn: /build-status for the latest xcodebuild, /wt for the worktree list. A mod: Claude Code 2.1.287+."
+    }
+  ]
+}
