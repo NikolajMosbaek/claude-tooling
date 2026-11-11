@@ -1,20 +1,21 @@
 # claude-tooling
 
-A [Claude Code](https://code.claude.com) plugin marketplace with three tools:
+A [Claude Code](https://code.claude.com) plugin marketplace with four tools:
 
 | Tool | What it is | What it gives you | Needs |
 |---|---|---|---|
 | [work-status](#work-status) | Skill | `/work-status`: a morning brief of your sprint items, PR health, what landed, and where every open session stopped | Azure DevOps, `az login`, `python3` |
 | [git-confirm](#git-confirm) | Mod | Refuses force-pushes; asks before a git command that would destroy work that isn't Claude's own, with an alarm listing what would be lost | Claude Code 2.1.287+, macOS |
 | [dev-commands](#dev-commands) | Mod | `/build-status` and `/wt`: instant answers about your xcodebuild and worktrees, with no Claude turn | Claude Code 2.1.287+, macOS |
+| [task-status](#task-status) | Mod | A pane beside the chat showing where the running task is — Plan, Development, Test, Bug fixing, Creating PR — and `/task-status` for the same as text | Claude Code 2.1.309+ |
 
 A *mod* is a plugin that runs inside Claude Code itself, so it sees every command Claude runs and
 can draw in the interface — see [Mods](https://code.claude.com/docs/en/plugins/mods/overview).
 
 ## Install
 
-1. Check your version: `claude --version` must be 2.1.287 or later for the two mods. Update
-   Claude Code if it is older.
+1. Check your version: `claude --version` must be 2.1.287 or later for git-confirm and
+   dev-commands, and 2.1.309 or later for task-status. Update Claude Code if it is older.
 2. In a Claude Code session, add the marketplace once:
 
    ```
@@ -27,6 +28,7 @@ can draw in the interface — see [Mods](https://code.claude.com/docs/en/plugins
    /plugin install work-status@claude-tooling
    /plugin install git-confirm@claude-tooling
    /plugin install dev-commands@claude-tooling
+   /plugin install task-status@claude-tooling
    ```
 
    work-status asks for your Azure DevOps organization when it is enabled: the name in your
@@ -187,6 +189,42 @@ Errors (1):
 (`> file`, `&>`, `| tee`). With no build seen in this session it falls back to the newest
 xcodebuild log Claude wrote under `/private/tmp/claude-*`.
 
+### task-status
+
+A mod (Claude Code 2.1.309 or later) for long, unattended tasks: a pane beside the chat that keeps
+an overview of where the task is, so you don't have to ask. It opens when a session starts, and
+`/task-status` prints the same overview as text (and reopens the pane if you closed it).
+
+```
+✅ Plan — 1/1 · Plan the change
+🔄 Development — 1/2 · Commit and update docs
+    ✅ Implement the timeout
+    🔄 Commit and update docs
+    • commit: feat: add timeout
+⏳ Test — 0/1 · next: Run the full test suite
+⏳ Bug fixing — 0/1 · next: Review and fix
+⏳ Creating PR — 0/2 · next: Push and open draft PR
+```
+
+Every phase is ✅ done, 🔄 in progress or ⏳ not started, with one line of detail; Development
+also lists its steps and the commits made. It only watches — it never blocks or changes a call:
+
+- **The task list Claude keeps**: `TodoWrite` or `TaskCreate`/`TaskUpdate` in the terminal, the
+  task list under the latest message in the desktop app. Each step lands in a phase by keyword,
+  first match winning: push, PR, squash, report → Creating PR; review, fix loop, bug, findings →
+  Bug fixing; test, suite, verify, validate → Test; plan, design, spec, explore → Plan; anything
+  else → Development.
+- **Commands Claude runs**: `git commit` adds its subject under Development; `xcodebuild … test`,
+  `swift test` and `claude plugin test` mark Test running; `git push`, `gh pr create` and
+  `az repos pr create` mark Creating PR running.
+- **Skills and agents**: a skill or agent whose name or description matches a phase marks it running
+  (a `code-review` skill → Bug fixing, an agent described as "run the test suite" → Test). A background agent stays "running in background"
+  until it finishes.
+
+A command run in the background reports no end, so it counts as done once the task list checks
+off the step of its phase. Agents and skills that match no phase are left out. The overview is
+per session and starts empty: it fills in from the next task-list change.
+
 ## Developing a mod
 
 Mods hot-reload from a folder: start Claude Code with `--plugin-dir <mod>`, or load the
@@ -199,7 +237,9 @@ claude plugin validate <mod>   # what the engine would load or refuse
 
 `claude plugin test` is the proper runner, but it refuses to start in 2.1.287, so `run-tests.sh`
 bundles each test with `claude-code/testing` aliased to `test-support/testing-shim.ts`. Tests that
-import a hooks module (`register.*`) need the engine and wait for the real runner. `hooks/shell.ts`
+import a hooks module (`register.*`) need the engine and wait for the real runner. From 2.1.309
+the runner works: task-status's tests (`.tsx`, so `run-tests.sh` passes them by) run with
+`claude plugin test task-status`. `hooks/shell.ts`
 is copied into both mods — a mod cannot import from another — so change both.
 
 Two engine limits shape git-confirm: a hook has a 10 s budget, after which the engine runs the call

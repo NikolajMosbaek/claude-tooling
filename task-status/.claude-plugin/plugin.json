@@ -1,0 +1,15 @@
+{
+  "name": "task-status",
+  "version": "1.0.0",
+  "description": "A live pane beside the chat showing the running task across Plan, Development, Test, Bug fixing and Creating PR, plus /task-status for the same as text",
+  "author": {
+    "name": "Nikolaj Søgaard Simonsen"
+  },
+  "keywords": [
+    "status",
+    "progress",
+    "pane",
+    "mod"
+  ],
+  "types": "./types/index.d.ts"
+}

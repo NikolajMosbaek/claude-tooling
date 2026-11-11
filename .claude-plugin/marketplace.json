@@ -22,6 +22,12 @@
       "source": "./dev-commands",
       "version": "1.0.0",
       "description": "Instant commands that run without a Claude turn: /build-status for the latest xcodebuild, /wt for the worktree list. A mod: Claude Code 2.1.287+."
+    },
+    {
+      "name": "task-status",
+      "source": "./task-status",
+      "version": "1.0.0",
+      "description": "A live pane showing the running task across Plan, Development, Test, Bug fixing and Creating PR, and /task-status for the same as text. A mod: Claude Code 2.1.309+."
     }
   ]
 }
