@@ -36,7 +36,7 @@ can draw in the interface — see [Mods](https://code.claude.com/docs/en/plugins
 
 4. Load them in the open session with `/reload-plugins`, or start a new session.
 5. Check: `/plugin` shows a dim line such as `2 mods active · git-confirm, dev-commands` under its
-   tabs, and typing `/wt` should print your worktrees.
+   tabs, naming each mod you installed.
 
 The same steps work from a shell: `claude plugin marketplace add NikolajMosbaek/claude-tooling`,
 then `claude plugin install <tool>@claude-tooling`.
@@ -231,16 +231,17 @@ Mods hot-reload from a folder: start Claude Code with `--plugin-dir <mod>`, or l
 `plugin-authoring` skill in a session and copy the mod into the dev-mods folder it names.
 
 ```
-test-support/run-tests.sh      # every mod test that needs no engine, under node
+claude plugin test <mod>       # every test of the mod, hooks module included
 claude plugin validate <mod>   # what the engine would load or refuse
 ```
 
-`claude plugin test` is the proper runner, but it refuses to start in 2.1.287, so `run-tests.sh`
-bundles each test with `claude-code/testing` aliased to `test-support/testing-shim.ts`. Tests that
-import a hooks module (`register.*`) need the engine and wait for the real runner. From 2.1.309
-the runner works: task-status's tests (`.tsx`, so `run-tests.sh` passes them by) run with
-`claude plugin test task-status`. `hooks/shell.ts`
-is copied into both mods — a mod cannot import from another — so change both.
+`claude plugin test` needs Claude Code 2.1.309 or later; 2.1.287 refuses to start it. On an older
+version, `test-support/run-tests.sh` runs the `.test.ts` files that need no engine under node, with
+`claude-code/testing` aliased to `test-support/testing-shim.ts`, and skips those that import a hooks
+module (`register.*`).
+
+`hooks/shell.ts` is copied into git-confirm and dev-commands — a mod cannot import from another —
+so change both.
 
 Two engine limits shape git-confirm: a hook has a 10 s budget, after which the engine runs the call
 on its behalf, so a dialog must go through `$.ui.ask` (a mod's own buttons cannot hold the call);
